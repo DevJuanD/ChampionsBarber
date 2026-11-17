@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  cd_usuario              Int                  @id @default(autoincrement())
+  telefone                String               @unique @db.VarChar(20)
+  email                   String?              @unique @db.VarChar(254)
+  senha_hash              String
+  status                  String               @default("PENDENTE") @db.VarChar(20)
+  telefone_verificado_em  DateTime?            @db.Timestamptz(6)
+  email_verificado_em     DateTime?            @db.Timestamptz(6)
+  versao_sessao           Int                  @default(1)
+  criado_em               DateTime             @default(now()) @db.Timestamptz(6)
+  atualizado_em           DateTime             @default(now()) @updatedAt @db.Timestamptz(6)
+  agendamentos_cancelados Agendamento[]        @relation("AutorCancelamento")
+  encaixes_autorizados    Agendamento[]        @relation("AutorEncaixe")
+  auditoria               Auditoria[]
+  bloqueio_agenda         BloqueioAgenda[]
+  cliente                 Cliente?
+  notificacoes            Notificacao[]
+  profissional            Profissional?
+  sessoes                 SessaoUsuario[]
+  papeis_atribuidos       UsuarioPapel[]       @relation("AutorPapel")
+  papeis                  UsuarioPapel[]       @relation("TitularPapel")
+  verificacoes            VerificacaoContato[]
+
+  @@map("usuario")
+}
+
+model Cliente {
+  cd_cliente       Int           @id @default(autoincrement())
+  cd_usuario       Int?          @unique
+  nome_completo    String        @db.VarChar(150)
+  telefone_contato String        @db.VarChar(20)
+  email_contato    String?       @db.VarChar(254)
+  criado_em        DateTime      @default(now()) @db.Timestamptz(6)
+  atualizado_em    DateTime      @default(now()) @updatedAt @db.Timestamptz(6)
+  agendamentos     Agendamento[]
+  usuario          Usuario?      @relation(fields: [cd_usuario], references: [cd_usuario], onUpdate: NoAction)
+
+  @@index([telefone_contato], map: "ix_cliente_telefone")
+  @@map("cliente")
+}
+
+model SessaoUsuario {
+  cd_sessao        Int       @id @default(autoincrement())
+  cd_usuario       Int
+  token_hash       String    @unique
+  criado_em        DateTime  @default(now()) @db.Timestamptz(6)
+  expira_em        DateTime  @db.Timestamptz(6)
+  revogado_em      DateTime? @db.Timestamptz(6)
+  ultimo_acesso_em DateTime? @db.Timestamptz(6)
+  usuario          Usuario   @relation(fields: [cd_usuario], references: [cd_usuario], onUpdate: NoAction)
+
+  @@index([cd_usuario, revogado_em, expira_em], map: "ix_sessao_usuario_ativa")
+  @@map("sessao_usuario")
+}
+
+model VerificacaoContato {
+  cd_verificacao Int          @id @default(autoincrement())
+  cd_usuario     Int?
+  cd_agendamento Int?
+  finalidade     String       @db.VarChar(40)
+  canal          String       @db.VarChar(15)
+  destino        String       @db.VarChar(254)
+  codigo_hash    String
+  tentativas     Int          @default(0)
+  expira_em      DateTime     @db.Timestamptz(6)
+  consumido_em   DateTime?    @db.Timestamptz(6)
+  criado_em      DateTime     @default(now()) @db.Timestamptz(6)
+  agendamento    Agendamento? @relation(fields: [cd_agendamento], references: [cd_agendamento], onDelete: Restrict, onUpdate: NoAction)
+  usuario        Usuario?     @relation(fields: [cd_usuario], references: [cd_usuario], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([cd_agendamento, criado_em(sort: Desc)], map: "ix_verificacao_agendamento")
+  @@index([cd_usuario, criado_em(sort: Desc)], map: "ix_verificacao_usuario")
+  @@map("verificacao_contato")
+}
+
+model Papel {
+  cd_papel  Int            @id @default(autoincrement())
+  codigo    String         @unique @db.VarChar(30)
+  nome      String         @db.VarChar(60)
+  descricao String?
+  ativo     Boolean        @default(true)
+  usuarios  UsuarioPapel[]
+
+  @@map("papel")
+}
+
+model UsuarioPapel {
+  cd_usuario_papel           Int      @id @default(autoincrement())
+  cd_usuario                 Int
+  cd_papel                   Int
+  ativo                      Boolean  @default(true)
+  escopo_visualizacao_agenda String   @default("SEM_ACESSO") @db.VarChar(15)
+  escopo_gestao_agenda       String   @default("SEM_ACESSO") @db.VarChar(15)
+  atribuido_por              Int?
+  atribuido_em               DateTime @default(now()) @db.Timestamptz(6)
+  pode_criar_agendamento     Boolean  @default(false)
+  pode_cancelar_agendamento  Boolean  @default(false)
+  pode_atualizar_status      Boolean  @default(false)
+  pode_bloquear_agenda       Boolean  @default(false)
+  pode_criar_encaixe         Boolean  @default(false)
+  autor                      Usuario? @relation("AutorPapel", fields: [atribuido_por], references: [cd_usuario], onUpdate: NoAction)
+  papel                      Papel    @relation(fields: [cd_papel], references: [cd_papel], onUpdate: NoAction)
+  usuario                    Usuario  @relation("TitularPapel", fields: [cd_usuario], references: [cd_usuario], onUpdate: NoAction)
+
+  @@unique([cd_usuario, cd_papel])
+  @@index([cd_usuario, ativo], map: "ix_usuario_papel_ativo")
+  @@map("usuario_papel")
+}
+
+model Servico {
+  cd_servico      Int                   @id @default(autoincrement())
+  nome            String                @db.VarChar(100)
+  descricao       String?
+  preco           Decimal               @db.Decimal(10, 2)
+  duracao_minutos Int
+  ativo           Boolean               @default(true)
+  criado_em       DateTime              @default(now()) @db.Timestamptz(6)
+  atualizado_em   DateTime              @default(now()) @updatedAt @db.Timestamptz(6)
+  agendamentos    Agendamento[]
+  profissionais   ProfissionalServico[]
+
+  @@map("servico")
+}
+
+model Profissional {
+  cd_profissional            Int                   @id @default(autoincrement())
+  cd_usuario                 Int?                  @unique
+  nome                       String                @db.VarChar(150)
+  descricao                  String?
+  ativo                      Boolean               @default(true)
+  permitir_exceder_jornada   Boolean               @default(false)
+  tolerancia_jornada_minutos Int                   @default(0)
+  criado_em                  DateTime              @default(now()) @db.Timestamptz(6)
+  atualizado_em              DateTime              @default(now()) @updatedAt @db.Timestamptz(6)
+  agendamentos               Agendamento[]
+  bloqueios                  BloqueioAgenda[]
+  jornadas                   JornadaProfissional[]
+  usuario                    Usuario?              @relation(fields: [cd_usuario], references: [cd_usuario], onUpdate: NoAction)
+  servicos                   ProfissionalServico[]
+
+  @@map("profissional")
+}
+
+model ProfissionalServico {
+  cd_profissional Int
+  cd_servico      Int
+  profissional    Profissional @relation(fields: [cd_profissional], references: [cd_profissional], onUpdate: NoAction)
+  servico         Servico      @relation(fields: [cd_servico], references: [cd_servico], onUpdate: NoAction)
+
+  @@id([cd_profissional, cd_servico])
+  @@index([cd_servico], map: "ix_profissional_servico_servico")
+  @@map("profissional_servico")
+}
+
+model Funcionamento {
+  cd_funcionamento Int      @id @default(autoincrement())
+  /// 0 = domingo; 6 = sábado. Cada linha representa um período.
+  dia_semana       Int      @db.SmallInt
+  hora_inicio      DateTime @db.Time(6)
+  hora_fim         DateTime @db.Time(6)
+  ativo            Boolean  @default(true)
+
+  @@index([dia_semana, ativo], map: "ix_funcionamento_dia")
+  @@map("funcionamento")
+}
+
+model JornadaProfissional {
+  cd_jornada      Int          @id @default(autoincrement())
+  cd_profissional Int
+  dia_semana      Int          @db.SmallInt
+  hora_inicio     DateTime     @db.Time(6)
+  hora_fim        DateTime     @db.Time(6)
+  ativo           Boolean      @default(true)
+  profissional    Profissional @relation(fields: [cd_profissional], references: [cd_profissional], onUpdate: NoAction)
+
+  @@index([cd_profissional, dia_semana], map: "ix_jornada_profissional_dia")
+  @@map("jornada_profissional")
+}
+
+model BloqueioAgenda {
+  cd_bloqueio            Int          @id @default(autoincrement())
+  cd_profissional        Int
+  cd_usuario_responsavel Int?
+  inicio_em              DateTime     @db.Timestamptz(6)
+  fim_em                 DateTime     @db.Timestamptz(6)
+  motivo                 String?
+  criado_em              DateTime     @default(now()) @db.Timestamptz(6)
+  profissional           Profissional @relation(fields: [cd_profissional], references: [cd_profissional], onUpdate: NoAction)
+  usuario                Usuario?     @relation(fields: [cd_usuario_responsavel], references: [cd_usuario], onUpdate: NoAction)
+
+  @@index([cd_profissional, inicio_em, fim_em], map: "ix_bloqueio_profissional_periodo")
+  @@map("bloqueio_agenda")
+}
+
+model Agendamento {
+  cd_agendamento         Int                  @id @default(autoincrement())
+  referencia_publica     String               @unique @db.VarChar(32)
+  cd_cliente             Int
+  cd_profissional        Int
+  cd_servico             Int
+  inicio_em              DateTime             @db.Timestamptz(6)
+  fim_em                 DateTime             @db.Timestamptz(6)
+  preco_registrado       Decimal              @db.Decimal(10, 2)
+  duracao_registrada     Int
+  nome_cliente_reserva   String               @db.VarChar(150)
+  telefone_reserva       String               @db.VarChar(20)
+  origem                 String               @db.VarChar(20)
+  status                 String               @default("CONFIRMADO") @db.VarChar(20)
+  cancelado_por          Int?
+  cancelado_em           DateTime?            @db.Timestamptz(6)
+  motivo_cancelamento    String?
+  criado_em              DateTime             @default(now()) @db.Timestamptz(6)
+  modalidade             String               @default("NORMAL") @db.VarChar(12)
+  encaixe_autorizado_por Int?
+  encaixe_autorizado_em  DateTime?            @db.Timestamptz(6)
+  encaixe_justificativa  String?
+  encaixe_alertas        Json                 @default("[]")
+  autor_cancelamento     Usuario?             @relation("AutorCancelamento", fields: [cancelado_por], references: [cd_usuario], onUpdate: NoAction)
+  cliente                Cliente              @relation(fields: [cd_cliente], references: [cd_cliente], onUpdate: NoAction)
+  profissional           Profissional         @relation(fields: [cd_profissional], references: [cd_profissional], onUpdate: NoAction)
+  servico                Servico              @relation(fields: [cd_servico], references: [cd_servico], onUpdate: NoAction)
+  autor_encaixe          Usuario?             @relation("AutorEncaixe", fields: [encaixe_autorizado_por], references: [cd_usuario], onDelete: Restrict, onUpdate: NoAction)
+  notificacoes           Notificacao[]
+  verificacoes           VerificacaoContato[]
+
+  @@index([cd_cliente, inicio_em], map: "ix_agendamento_cliente_inicio")
+  @@index([cd_profissional, modalidade, inicio_em], map: "ix_agendamento_modalidade")
+  @@index([cd_profissional, inicio_em], map: "ix_agendamento_profissional_inicio")
+  @@map("agendamento")
+}
+
+model Notificacao {
+  cd_notificacao       Int          @id @default(autoincrement())
+  cd_agendamento       Int?
+  cd_usuario           Int?
+  tipo                 String       @db.VarChar(40)
+  canal                String       @db.VarChar(15)
+  destinatario         String       @db.VarChar(254)
+  status               String       @default("PENDENTE") @db.VarChar(20)
+  tentativas           Int          @default(0)
+  proxima_tentativa_em DateTime?    @db.Timestamptz(6)
+  enviado_em           DateTime?    @db.Timestamptz(6)
+  criado_em            DateTime     @default(now()) @db.Timestamptz(6)
+  erro_resumido        String?      @db.VarChar(500)
+  chave_idempotencia   String?      @db.VarChar(100)
+  agendamento          Agendamento? @relation(fields: [cd_agendamento], references: [cd_agendamento], onDelete: Restrict, onUpdate: NoAction)
+  usuario              Usuario?     @relation(fields: [cd_usuario], references: [cd_usuario], onDelete: Restrict, onUpdate: NoAction)
+
+  @@index([status, proxima_tentativa_em], map: "ix_notificacao_pendente")
+  @@map("notificacao")
+}
+
+model Configuracao {
+  /// Singleton garantido pelo CHECK configuracao_registro_unico no PostgreSQL.
+  cd_configuracao                   Int      @id @default(autoincrement())
+  permitir_exceder_fechamento       Boolean  @default(false)
+  tolerancia_fechamento_minutos     Int      @default(0)
+  intervalo_atendimentos_minutos    Int      @default(5)
+  janela_agendamento_dias           Int      @default(15)
+  antecedencia_agendamento_minutos  Int      @default(0)
+  antecedencia_cancelamento_minutos Int      @default(120)
+  confirmacao_automatica            Boolean  @default(true)
+  selecao_automatica_profissional   Boolean  @default(true)
+  atualizado_em                     DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  @@map("configuracao")
+}
+
+model Auditoria {
+  cd_auditoria   Int      @id @default(autoincrement())
+  cd_usuario     Int?
+  operacao       String   @db.VarChar(50)
+  entidade       String   @db.VarChar(50)
+  cd_registro    Int?
+  valor_anterior Json?
+  valor_novo     Json?
+  justificativa  String?
+  criado_em      DateTime @default(now()) @db.Timestamptz(6)
+  usuario        Usuario? @relation(fields: [cd_usuario], references: [cd_usuario], onUpdate: NoAction)
+
+  @@index([entidade, cd_registro, criado_em(sort: Desc)], map: "ix_auditoria_entidade")
+  @@map("auditoria")
+}
