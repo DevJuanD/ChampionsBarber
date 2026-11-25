@@ -1,15 +1,25 @@
 import { useEffect, useState } from 'react';
+import { consultarApi } from './api';
 
 export default function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erroTelefone, setErroTelefone] = useState('');
+  const [erro, setErro] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     document.title = 'Entrar | Champions Barbearia';
+    const controller = new AbortController();
+    consultarApi('/auth/sessao', { signal: controller.signal })
+      .then(() => window.location.replace('/painel'))
+      .catch(() => {});
+    return () => controller.abort();
   }, []);
 
-  function entrar(event) {
+  async function entrar(event) {
     event.preventDefault();
+    if (enviando) return;
+    setErro('');
 
     const telefone = event.currentTarget.elements.telefone;
     const numeros = telefone.value.replace(/\D/g, '');
@@ -21,7 +31,16 @@ export default function Login() {
     }
 
     setErroTelefone('');
-
+    const senha = event.currentTarget.elements.senha.value;
+    setEnviando(true);
+    try {
+      await consultarApi('/auth/login', { dados: { telefone: telefone.value, senha } });
+      window.location.assign('/painel');
+    } catch (error) {
+      setErro(error.message);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -47,7 +66,7 @@ export default function Login() {
           <h1>Bem-vindo de volta<span>.</span></h1>
           <p className="login-descricao">Entre com seu telefone e senha.<br />Um só acesso para clientes e profissionais.</p>
 
-          <form className="formulario-login" onSubmit={entrar}>
+          <form className="formulario-login" onSubmit={entrar} aria-busy={enviando} onChange={() => setErro('')}>
             <div className="campo-login">
               <label htmlFor="telefone">Telefone com DDD</label>
               <input
@@ -75,6 +94,7 @@ export default function Login() {
                   type={mostrarSenha ? 'text' : 'password'}
                   autoComplete="current-password"
                   placeholder="Digite sua senha"
+                  maxLength={128}
                   required
 
                 />
@@ -87,7 +107,8 @@ export default function Login() {
             <button className="login-recuperar" type="button" disabled>
               Esqueci minha senha
             </button>
-            <button className="botao login-enviar" type="submit" disabled>Entrar</button>
+            {erro && <p className="erro-formulario" role="alert">{erro}</p>}
+            <button className="botao login-enviar" type="submit" disabled={enviando}>{enviando ? 'Entrando…' : 'Entrar'}</button>
 
           </form>
 

@@ -129,7 +129,7 @@ footer { border-top: 1px solid #ffffff18; background: #0d0e0e; }
 .login-visitante p { margin: 0; color: #5b5e55; }
 .login-visitante a { display: inline-flex; align-items: center; min-height: 44px; font-weight: bold; text-decoration: underline; text-underline-offset: 4px; }
 .formulario-login button:disabled { cursor: not-allowed; }
-.formulario-login .login-enviar:disabled { background: #d9b452; color: #171711; }
+.formulario-login .login-enviar:disabled { background: #d9b452; color: #171711; opacity: 0.65; }
 .login-recuperar:disabled { color: #64675d; text-decoration: none; }
 .login-criar-conta { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 8px; margin-top: 24px; font-size: 16px; }
 .login-criar-conta p { margin: 0; color: #5b5e55; }
@@ -137,6 +137,22 @@ footer { border-top: 1px solid #ffffff18; background: #0d0e0e; }
 .campo-ajuda { margin: 0; color: #5b5e55; font-size: 14px; }
 .campo-opcional { font-size: 14px; font-weight: normal; color: #5b5e55; }
 .pagina-cadastro .login-conteudo { padding-top: 24px; }
+.erro-formulario { margin: 0; padding: 14px 16px; border: 1px solid #c18b83; border-radius: 4px; background: #fff1ed; color: #81291f; font-size: 16px; }
+.cadastro-recebido { padding: 24px; border: 1px solid #b9c7b0; background: #edf2e9; }
+.cadastro-recebido h2 { font-size: 24px; letter-spacing: -0.5px; }
+.cadastro-recebido a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 16px; color: #293d22; text-decoration: underline; }
+.pagina-conta { min-height: 100vh; background: #f3f1eb; color: #1a1c1b; }
+.pagina-conta .cabecalho { color: #f6f5f0; }
+.conta-conteudo { max-width: 800px; padding-top: 56px; padding-bottom: 56px; }
+.conta-conteudo > .etiqueta { color: #80601f; font-size: 14px; margin-top: 24px; }
+.conta-conteudo h1 { font-size: clamp(32px, 5vw, 48px); letter-spacing: -1px; }
+.conta-conteudo h1 span { color: #947021; }
+.conta-dados { margin: 32px 0; border: 1px solid #d3d0c5; padding: 24px; background: #fffefa; }
+.conta-dados h2 { font-size: 24px; letter-spacing: -0.5px; }
+.conta-dados dl { margin: 16px 0 0; }
+.conta-dados dl div { margin-top: 16px; }
+.conta-dados dt { color: #5b5e55; font-size: 14px; }
+.conta-dados dd { margin: 4px 0 0; font-size: 16px; overflow-wrap: anywhere; }
 @media (max-width: 760px) {
   .pagina-login { grid-template-columns: 1fr; }
   .login-apresentacao { padding: 24px; background-position: center 30%; }

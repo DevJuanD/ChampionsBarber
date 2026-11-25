@@ -13,4 +13,9 @@ Nunca coloque senha de banco ou credenciais nas variáveis VITE_*.
 
 `npm run build` gera `dist`. O proxy é exclusivo do desenvolvimento: na hospedagem,
 configure `/api` no servidor. A imagem da apresentação é ilustrativa (Unsplash).
-Agendamento e login serão implementados nas próximas etapas.
+Login e cadastro usam `/api/auth`, com cookie de sessão HttpOnly. Após entrar,
+`/painel` consulta a sessão e mostra os dados e papéis da própria conta, com logout.
+Credenciais e tokens não são armazenados no localStorage. O cadastro público
+permanece pendente até a confirmação do telefone; SMS e recuperação de senha
+ainda precisam de integração. A gestão administrativa e o agendamento serão
+implementados nas próximas etapas.
