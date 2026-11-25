@@ -45,6 +45,7 @@ export default function App() {
             <a href="#inicio">Início</a>
             <a href="#servicos">Serviços</a>
             <a className="botao pequeno" href="#servicos">Conhecer serviços <Seta /></a>
+            <a className="botao-entrar" href="/login">Entrar</a>
           </nav>
         </div>
       </header>
@@ -68,7 +69,7 @@ export default function App() {
             </div>
             {carregando && <p className="aviso" role="status">Carregando serviços…</p>}
             {erro && <div className="aviso" role="alert"><p>{erro}</p><button className="botao" onClick={() => setTentativa(tentativa + 1)}>Tentar novamente</button></div>}
-            {!carregando && !erro && servicos.length === 0 && <div className="aviso" role="status"><h3>Estamos preparando nosso catálogo.</h3><p>Em breve, você poderá conferir nossos serviços por aqui.</p></div>}
+            {!carregando && !erro && servicos.length === 0 && <p className="aviso" role="status">Nenhum serviço cadastrado.</p>}
             {!carregando && !erro && servicos.length > 0 && (
               <div className="lista-servicos">
                 {servicos.map((servico, index) => (
