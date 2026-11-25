@@ -4,3 +4,12 @@
 /src/doc/
 dist/
 /output/
+doc/
+docs/
+*.md
+*.doc
+*.docx
+*.pdf
+*.odt
+*.rtf
+*.txt
