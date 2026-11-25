@@ -45,7 +45,10 @@ export default function App() {
             <a href="#inicio">Início</a>
             <a href="#servicos">Serviços</a>
             <a className="botao pequeno" href="#servicos">Conhecer serviços <Seta /></a>
-            <a className="botao-entrar" href="/login">Entrar</a>
+            <div className="acoes-conta">
+              <a className="botao-entrar" href="/login">Entrar</a>
+              <a className="botao botao-cadastro" href="/cadastro">Criar conta</a>
+            </div>
           </nav>
         </div>
       </header>

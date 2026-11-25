@@ -31,7 +31,8 @@ documento ao mudar de página; não é roteamento por React Router.
 ## frontend/src/App.jsx
 
 É a página pública com cabeçalho, apresentação, catálogo, seção de experiência e
-rodapé. O botão Entrar vai para `/login`; os links do catálogo usam `#servicos`.
+rodapé. Os botões Entrar e Criar conta ficam lado a lado e levam a `/login` e
+`/cadastro`, respectivamente; os links do catálogo usam `#servicos`.
 
 Seus estados são:
 

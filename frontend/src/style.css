@@ -27,6 +27,8 @@ nav > a:not(.botao):not(.botao-entrar):hover { color: #d9b452; }
 .botao-entrar { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 10px 24px; border: 1px solid #d9b452; border-radius: 4px; background: transparent; color: #f6f5f0; font-size: 16px; font-weight: bold; }
 .botao-entrar:hover, .botao-entrar:focus-visible { background: #d9b452; color: #171711; }
 .botao-entrar:active { background: #c9a13d; color: #171711; }
+.acoes-conta { display: flex; align-items: center; gap: 12px; }
+.botao-cadastro { justify-content: center; font-size: 16px; padding: 10px 20px; white-space: nowrap; }
 .hero { position: relative; background: #27231c url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=2000&q=85') center 48% / cover; }
 .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #080b0cf0 0%, #080b0cb0 43%, #080b0c28 100%); }
 .hero-conteudo { position: relative; padding-top: 90px; padding-bottom: 26px; }
@@ -70,6 +72,14 @@ footer { border-top: 1px solid #ffffff18; background: #0d0e0e; }
 .rodape .marca { font-size: 12px; }
 .rodape .marca small { font-size: 8px; }
 .rodape p, .rodape > a:last-child { color: #bcbfb6; font-size: 13px; }
+@media (max-width: 1050px) {
+  .cabecalho .navegacao { flex-wrap: wrap; padding-top: 16px; padding-bottom: 16px; }
+  .navegacao nav { width: 100%; justify-content: space-between; flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .acoes-conta { width: 100%; }
+  .acoes-conta a { flex: 1; }
+}
 @media (max-width: 760px) {
   .container { width: calc(100% - 40px); }
   .navegacao { min-height: 82px; flex-wrap: wrap; gap: 12px; padding-top: 16px; padding-bottom: 16px; }
