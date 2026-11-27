@@ -1,8 +1,8 @@
-export async function consultarApi(caminho, { dados, signal } = {}) {
+export async function consultarApi(caminho, { dados, signal, metodo } = {}) {
   let resposta;
   try {
     resposta = await fetch(`/api${caminho}`, {
-      method: dados === undefined ? 'GET' : 'POST',
+      method: metodo || (dados === undefined ? 'GET' : 'POST'),
       credentials: 'same-origin',
       signal,
       headers: dados === undefined ? {} : {

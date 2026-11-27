@@ -16,7 +16,7 @@ function normalizarTelefone(valor) {
   }
   let numeros = valor.replace(/\D/g, '');
   if (!valor.trim().startsWith('+') && [10, 11].includes(numeros.length)) numeros = `55${numeros}`;
-  if (!/^[1-9]\d{9,14}$/.test(numeros)) throw erroAuth(400, 'Informe um telefone válido com DDD.');
+  if (!/^55[1-9]\d{9,10}$/.test(numeros)) throw erroAuth(400, 'Informe um telefone com DDD de 10 ou 11 dígitos.');
   return `+${numeros}`;
 }
 
@@ -31,7 +31,7 @@ function hashToken(token) {
 }
 
 const camposUsuario = {
-  cd_usuario: true, telefone: true, email: true, status: true, telefone_verificado_em: true,
+  cd_usuario: true, telefone: true, email: true, status: true, telefone_verificado_em: true, deve_trocar_senha: true,
   cliente: { select: { cd_cliente: true, nome_completo: true } },
   profissional: { select: { cd_profissional: true, nome: true, ativo: true } },
   papeis: {
@@ -61,6 +61,7 @@ function usuarioPublico(usuario) {
   }
   return {
     cd_usuario: usuario.cd_usuario, telefone: usuario.telefone, email: usuario.email,
+    deve_trocar_senha: Boolean(usuario.deve_trocar_senha),
     nome: usuario.cliente?.nome_completo || usuario.profissional?.nome || null, status: usuario.status,
     cd_cliente: usuario.cliente?.cd_cliente || null, cd_profissional: profissional, papeis,
     permissoes: {
@@ -152,6 +153,25 @@ function criarAuthService(db = prisma) {
       if (typeof token === 'string' && /^[a-f0-9]{64}$/.test(token)) {
         await db.sessaoUsuario.updateMany({ where: { token_hash: hashToken(token), revogado_em: null }, data: { revogado_em: new Date() } });
       }
+    },
+
+    async trocarSenhaInicial(cd_usuario, dados) {
+      validarSenha(dados.senha, true);
+      if (dados.senha !== dados.confirmacao) throw erroAuth(400, 'As senhas não coincidem.');
+      const senha_hash = await argon2.hash(dados.senha, opcoesSenha);
+      await db.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT cd_usuario FROM usuario WHERE cd_usuario = ${cd_usuario} FOR UPDATE`;
+        const usuario = await tx.usuario.findUnique({ where: { cd_usuario } });
+        if (!contaAtiva(usuario)) throw erroAuth(401, 'Sua sessão terminou. Entre novamente.');
+        if (!usuario.deve_trocar_senha) throw erroAuth(409, 'A senha inicial já foi alterada. Entre novamente.');
+        const digitos = dados.senha.replace(/\D/g, '');
+        const telefone = usuario.telefone.replace(/\D/g, '');
+        if ((digitos.length >= 10 && (digitos === telefone || `55${digitos}` === telefone)) || await argon2.verify(usuario.senha_hash, dados.senha)) {
+          throw erroAuth(400, 'Escolha uma senha diferente do seu telefone e da senha inicial.');
+        }
+        await tx.usuario.update({ where: { cd_usuario }, data: { senha_hash, deve_trocar_senha: false } });
+        await tx.sessaoUsuario.updateMany({ where: { cd_usuario, revogado_em: null }, data: { revogado_em: new Date() } });
+      });
     },
 
     async sairDeTodos(cd_usuario) {

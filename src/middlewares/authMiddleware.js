@@ -6,6 +6,9 @@ const auth = criarAuthService();
 async function exigirSessao(req, res, next) {
   try {
     req.usuario = await auth.autenticar(req.cookies[nomeCookie]);
+    if (req.usuario.deve_trocar_senha && !['/api/auth/sessao', '/api/auth/senha-inicial', '/api/auth/logout-todos'].includes(req.originalUrl.split('?')[0])) {
+      return res.status(403).json({ mensagem: 'Defina sua nova senha para continuar.', codigo: 'TROCA_SENHA_OBRIGATORIA' });
+    }
     next();
   } catch (error) {
     if (error.status === 401) res.clearCookie(nomeCookie, opcoesCookie);

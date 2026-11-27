@@ -1,0 +1,10 @@
+const express = require('express');
+const { exigirSessao, protegerEscrita } = require('../middlewares/authMiddleware');
+const { criarBloqueioService } = require('../services/bloqueioService');
+const service = criarBloqueioService();
+const router = express.Router();
+router.use(protegerEscrita, exigirSessao, (req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+router.get('/', async (req, res) => { res.json(await service.listar(req.query.data, req.usuario)); });
+router.post('/', async (req, res) => { res.status(201).json(await service.criar(req.body || {}, req.usuario)); });
+router.delete('/:id', async (req, res) => { await service.remover(req.params.id, req.usuario); res.status(204).end(); });
+module.exports = router;

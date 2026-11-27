@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Usuario {
@@ -12,6 +13,7 @@ model Usuario {
   telefone                String               @unique @db.VarChar(20)
   email                   String?              @unique @db.VarChar(254)
   senha_hash              String
+  deve_trocar_senha        Boolean              @default(false)
   status                  String               @default("PENDENTE") @db.VarChar(20)
   telefone_verificado_em  DateTime?            @db.Timestamptz(6)
   email_verificado_em     DateTime?            @db.Timestamptz(6)

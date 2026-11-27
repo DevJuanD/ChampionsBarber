@@ -6,7 +6,8 @@ test('normaliza telefone brasileiro com ou sem código do país', () => {
   for (const telefone of ['(11) 99999-0000', '11999990000', '5511999990000', '+55 (11) 99999-0000']) {
     assert.equal(normalizarTelefone(telefone), '+5511999990000');
   }
-  for (const telefone of [null, {}, 11999990000, 'abc11999990000', '123', '++5511999990000']) {
+  assert.equal(normalizarTelefone('(11) 3333-4444'), '+551133334444');
+  for (const telefone of [null, {}, 11999990000, 'abc11999990000', '123', '++5511999990000', '119999900001', '+55119999900001', '+14155552671', '01999990000']) {
     assert.throws(() => normalizarTelefone(telefone), { status: 400 });
   }
 });

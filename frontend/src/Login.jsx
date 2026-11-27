@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { consultarApi } from './api';
+import CampoTelefone from './CampoTelefone';
 
 export default function Login() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -11,7 +12,7 @@ export default function Login() {
     document.title = 'Entrar | Champions Barbearia';
     const controller = new AbortController();
     consultarApi('/auth/sessao', { signal: controller.signal })
-      .then(() => window.location.replace('/painel'))
+      .then(({ usuario }) => window.location.replace(usuario.deve_trocar_senha ? '/definir-senha' : '/painel'))
       .catch(() => {});
     return () => controller.abort();
   }, []);
@@ -24,7 +25,7 @@ export default function Login() {
     const telefone = event.currentTarget.elements.telefone;
     const numeros = telefone.value.replace(/\D/g, '');
 
-    if (numeros.length < 10 || numeros.length > 15) {
+    if (![10, 11].includes(numeros.length)) {
       setErroTelefone('Informe um telefone válido com DDD.');
       telefone.focus();
       return;
@@ -34,8 +35,8 @@ export default function Login() {
     const senha = event.currentTarget.elements.senha.value;
     setEnviando(true);
     try {
-      await consultarApi('/auth/login', { dados: { telefone: telefone.value, senha } });
-      window.location.assign('/painel');
+      const { usuario } = await consultarApi('/auth/login', { dados: { telefone: telefone.value, senha } });
+      window.location.assign(usuario.deve_trocar_senha ? '/definir-senha' : '/painel');
     } catch (error) {
       setErro(error.message);
     } finally {
@@ -67,9 +68,10 @@ export default function Login() {
           <p className="login-descricao">Entre com seu telefone e senha.<br />Um só acesso para clientes e profissionais.</p>
 
           <form className="formulario-login" onSubmit={entrar} aria-busy={enviando} onChange={() => setErro('')}>
+            {new URLSearchParams(window.location.search).get('senha') === 'alterada' && <p className="clientes-sucesso" role="status">Senha alterada. Entre com sua nova senha.</p>}
             <div className="campo-login">
               <label htmlFor="telefone">Telefone com DDD</label>
-              <input
+              <CampoTelefone
                 id="telefone"
                 name="telefone"
                 type="tel"

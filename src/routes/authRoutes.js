@@ -20,5 +20,6 @@ router.post('/login', limiteLogin, limiteTelefone, controller.entrar);
 router.get('/sessao', exigirSessao, controller.consultarSessao);
 router.post('/logout', controller.sair);
 router.post('/logout-todos', exigirSessao, controller.sairDeTodos);
+router.post('/senha-inicial', limiteLogin, exigirSessao, controller.trocarSenhaInicial);
 
 module.exports = router;

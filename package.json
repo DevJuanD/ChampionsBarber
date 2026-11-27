@@ -9,6 +9,7 @@
     "admin:criar": "node scripts/criar-admin.js",
     "db:pull": "prisma db pull",
     "db:check": "node scripts/check-database.js",
+    "db:connection": "node scripts/check-connection.js",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
     "db:format": "prisma format",

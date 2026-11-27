@@ -30,4 +30,10 @@ async function sairDeTodos(req, res) {
   res.status(204).end();
 }
 
-module.exports = { cadastrar, entrar, consultarSessao, sair, sairDeTodos };
+async function trocarSenhaInicial(req, res) {
+  await auth.trocarSenhaInicial(req.usuario.cd_usuario, req.body || {});
+  res.clearCookie(nomeCookie, opcoesCookie);
+  res.status(204).end();
+}
+
+module.exports = { cadastrar, entrar, consultarSessao, sair, sairDeTodos, trocarSenhaInicial };

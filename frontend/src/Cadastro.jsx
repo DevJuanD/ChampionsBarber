@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { consultarApi } from './api';
+import CampoTelefone from './CampoTelefone';
 
 export default function Cadastro() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -21,7 +22,7 @@ export default function Cadastro() {
     const novosErros = {};
 
     if (campos.nome.value.trim().length < 3) novosErros.nome = 'Informe seu nome completo.';
-    if (numeros.length < 10 || numeros.length > 15) novosErros.telefone = 'Informe um telefone válido com DDD.';
+    if (![10, 11].includes(numeros.length)) novosErros.telefone = 'Informe 10 ou 11 dígitos, incluindo o DDD.';
     if (campos.senha.value !== campos.confirmarSenha.value) novosErros.confirmarSenha = 'As senhas precisam ser iguais.';
 
     setErros(novosErros);
@@ -86,7 +87,7 @@ export default function Cadastro() {
 
             <div className="campo-login">
               <label htmlFor="telefone">Telefone com DDD</label>
-              <input id="telefone" name="telefone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(00) 00000-0000" maxLength={24} required aria-invalid={Boolean(erros.telefone)} aria-describedby={erros.telefone ? 'erro-telefone telefone-ajuda' : 'telefone-ajuda'} />
+              <CampoTelefone id="telefone" name="telefone" autoComplete="tel" placeholder="(00) 00000-0000" required aria-invalid={Boolean(erros.telefone)} aria-describedby={erros.telefone ? 'erro-telefone telefone-ajuda' : 'telefone-ajuda'} />
               <p className="campo-ajuda" id="telefone-ajuda">Você usará este telefone para entrar na sua conta.</p>
               {erros.telefone && <p className="erro-campo" id="erro-telefone" role="alert">{erros.telefone}</p>}
             </div>

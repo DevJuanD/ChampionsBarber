@@ -4,6 +4,13 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
 const servicoRoutes = require('./routes/servicoRoutes');
+const profissionalRoutes = require('./routes/profissionalRoutes');
+const horarioRoutes = require('./routes/horarioRoutes');
+const clienteRoutes = require('./routes/clienteRoutes');
+const agendamentoRoutes = require('./routes/agendamentoRoutes');
+const agendaRoutes = require('./routes/agendaRoutes');
+const usuarioEquipeRoutes = require('./routes/usuarioEquipeRoutes');
+const bloqueioRoutes = require('./routes/bloqueioRoutes');
 
 const app = express();
 
@@ -12,6 +19,13 @@ app.use(express.json({ limit: '16kb' }));
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/servicos', servicoRoutes);
+app.use('/api/profissionais', profissionalRoutes);
+app.use('/api/horarios', horarioRoutes);
+app.use('/api/clientes', clienteRoutes);
+app.use('/api/agendamentos', agendamentoRoutes);
+app.use('/api/agenda', agendaRoutes);
+app.use('/api/usuarios-equipe', usuarioEquipeRoutes);
+app.use('/api/bloqueios', bloqueioRoutes);
 
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
